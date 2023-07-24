@@ -36,7 +36,7 @@ describe("create booking", () => {
         });
       });
 
-      it('should return not found error if user does not have a ticket', async () => {
+    it('should return not found error if user does not have a ticket', async () => {
         const enrollment = createEnrollmentInput();
         //jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(enrollment);
         jest.spyOn(ticketsRepository, 'findTicketsByUserId').mockResolvedValue(null);
@@ -52,6 +52,46 @@ describe("create booking", () => {
         const ticket = createTicketInput(true, false, TicketStatus.RESERVED);
         jest.spyOn(ticketsRepository, "findTicketsByUserId").mockResolvedValue(ticket);
 
-    })
+        const promise = bookingService.createBooking(1, 1);
+        
+        expect(promise).rejects.toEqual({
+            name: 'ForbiddenError',
+            message: 'You do not have permission to do this action',});
+      });
+    
+    it('should return forbidden error if user ticket does not includes hotel', async () => {
+        const ticket = createTicketInput(false, false, TicketStatus.PAID)
+        jest.spyOn(ticketsRepository, 'findTicketsByUserId').mockResolvedValue(ticket);
+    
+        const promise = bookingService.createBooking(1, 1);
 
-})
+        expect(promise).rejects.toEqual({
+            name: 'ForbiddenError',
+            message: 'You do not have permission to do this action',});
+      });
+
+    it('should return forbidden error if user ticket is not paid', async () => {
+        const ticket = createTicketInput(false, true, TicketStatus.RESERVED)
+        jest.spyOn(ticketsRepository, 'findTicketsByUserId').mockResolvedValue(ticket);
+    
+        const promise = bookingService.createBooking(1, 1);
+
+        expect(promise).rejects.toEqual({
+            name: 'ForbiddenError',
+            message: 'You do not have permission to do this action',});
+    });
+
+});
+
+describe("update booking", () => {
+    it('should return forbidden error if user does not have a booking', async () => {
+        jest.spyOn(bookingRepository, 'getBooking').mockResolvedValue(null);
+        const promise = bookingService.createBooking(1, 1);
+
+        expect(promise).rejects.toEqual({
+            name: 'ForbiddenError',
+            message: 'You do not have permission to do this action',});
+      });
+
+});
+
