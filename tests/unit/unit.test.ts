@@ -1,11 +1,11 @@
 
-import bookingService from "@/services/booking-service";
 import { createBookingInput } from '../factories/booking-factory';
 import bookingRepository from '@/repositories/booking-repository';
 import { createEnrollmentInput, createTicketInput } from "../factories";
 import { TicketStatus } from "@prisma/client";
-import ticketsRepository from "../repositories/tickets-repository";
-import enrollmentRepository from "../repositories/enrollment-repository";
+import ticketsRepository from "@/repositories/tickets-repository";
+import enrollmentRepository from "@/repositories/enrollment-repository";
+import bookingService from '../services/booking-service';
 
 beforeEach(async () => {
     jest.clearAllMocks();
@@ -38,10 +38,11 @@ describe("create booking", () => {
 
     it('should return not found error if user does not have a ticket', async () => {
         const enrollment = createEnrollmentInput();
-        //jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(enrollment);
+        jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(enrollment);
+        const ticket = createTicketInput(true, false, TicketStatus.RESERVED);
         jest.spyOn(ticketsRepository, 'findTicketsByUserId').mockResolvedValue(null);
     
-        const promise = bookingService.createBooking(1, 1);
+        const promise = bookingService.createBooking(1,1);
         expect(promise).rejects.toEqual({
             name: 'NotFoundError',
             message: 'No result for this search!',
@@ -49,6 +50,8 @@ describe("create booking", () => {
       });
 
     it("should throw an error when ticket type is remote", async () =>{
+        const enrollment = createEnrollmentInput();
+        jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(enrollment);
         const ticket = createTicketInput(true, false, TicketStatus.RESERVED);
         jest.spyOn(ticketsRepository, "findTicketsByUserId").mockResolvedValue(ticket);
 
@@ -60,6 +63,8 @@ describe("create booking", () => {
       });
     
     it('should return forbidden error if user ticket does not includes hotel', async () => {
+        const enrollment = createEnrollmentInput();
+        jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(enrollment);
         const ticket = createTicketInput(false, false, TicketStatus.PAID)
         jest.spyOn(ticketsRepository, 'findTicketsByUserId').mockResolvedValue(ticket);
     
@@ -71,6 +76,8 @@ describe("create booking", () => {
       });
 
     it('should return forbidden error if user ticket is not paid', async () => {
+        const enrollment = createEnrollmentInput();
+        jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(enrollment);
         const ticket = createTicketInput(false, true, TicketStatus.RESERVED)
         jest.spyOn(ticketsRepository, 'findTicketsByUserId').mockResolvedValue(ticket);
     
