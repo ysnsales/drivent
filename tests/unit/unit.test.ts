@@ -25,8 +25,8 @@ describe("get booking", () => {
         
         const promise = bookingService.getBooking(booking.userId);
         expect(promise).rejects.toEqual({
-            name: 'ForbiddenError',
-            message: 'You do not have permission to do this action',
+            name: 'NotFoundError',
+            message: 'No result for this search!',
         })
     });
     

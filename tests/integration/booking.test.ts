@@ -43,12 +43,12 @@ describe('GET /booking', () => {
     });
   
     describe('when token is valid', () => {
-        it('should respond with status 403 when user does not have a booking', async () => {
+        it('should respond with status 404 when user does not have a booking', async () => {
             const token = await generateValidToken();
       
             const response = await server.get('/booking').set('Authorization', `Bearer ${token}`);
       
-            expect(response.status).toEqual(httpStatus.FORBIDDEN);
+            expect(response.status).toEqual(httpStatus.NOT_FOUND);
           });
 
         it('should respond with user booking', async () => {
