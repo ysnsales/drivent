@@ -47,7 +47,7 @@ export async function createTicketTypeWithHotel() {
 
 export async function createTicketInput( isRemote: boolean, includesHotel: boolean, status: TicketStatus) {
   const typeId = +faker.datatype.number();
-  return ({
+  return ([{
     id: +faker.datatype.number(),
     ticketTypeId: typeId,
     enrollmentId: +faker.datatype.number(),
@@ -63,6 +63,6 @@ export async function createTicketInput( isRemote: boolean, includesHotel: boole
         createdAt: new Date(),
         updatedAt: new Date(),
     }
-} as (Ticket & { TicketType: TicketType; }))
+}] )
   
 }

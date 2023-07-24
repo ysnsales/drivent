@@ -4,7 +4,7 @@ import { cleanDb, generateValidToken } from '../helpers';
 import httpStatus from 'http-status';
 import faker from '@faker-js/faker';
 import * as jwt from 'jsonwebtoken';
-import { createEnrollmentWithAddress, createHotel, createPayment, createRoomWithHotelId, createTicket, createTicketType, createTicketTypeRemote, createUser } from '../factories';
+import { createEnrollmentWithAddress, createHotel, createPayment, createRoomWithHotelId, createTicket, createTicketType, createTicketTypeRemote, createTicketTypeWithHotel, createUser } from '../factories';
 import { TicketStatus } from '@prisma/client';
 import { createBooking } from '../factories/booking-factory';
 
@@ -98,22 +98,61 @@ describe('POST /booking', () => {
       });
 
     describe('when token is valid', () => {    
-        it('should respond with status 200 and booking id', async () => {
-            const user = await createUser();
-            const token = await generateValidToken(user);
-            const enrollment = await createEnrollmentWithAddress(user);
-            const ticketType = await createTicketType(false, true);
-            const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);    
-            
-            await createPayment(ticket.id, ticketType.price);
+      it('should respond with status 402 when user ticket is remote ', async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const enrollment = await createEnrollmentWithAddress(user);
+        const ticketType = await createTicketTypeRemote();
+        const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+        await createPayment(ticket.id, ticketType.price);
+  
+        const response = await server.get('/hotels/1').set('Authorization', `Bearer ${token}`);
+  
+        expect(response.status).toEqual(httpStatus.PAYMENT_REQUIRED);
+      });
+  
+      it('should respond with status 404 when user has no enrollment ', async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+  
+        await createTicketTypeRemote();
+  
+        const response = await server.get('/hotels/1').set('Authorization', `Bearer ${token}`);
+  
+        expect(response.status).toEqual(httpStatus.NOT_FOUND);
+      });
+  
+      it('should respond with status 404 for invalid hotel id', async () => {
+        const user = await createUser();
+        const token = await generateValidToken(user);
+        const enrollment = await createEnrollmentWithAddress(user);
+        const ticketType = await createTicketTypeWithHotel();
+        const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
+        await createPayment(ticket.id, ticketType.price);
+  
+        await createHotel();
+  
+        const response = await server.get('/hotels/100').set('Authorization', `Bearer ${token}`);
+  
+        expect(response.status).toEqual(httpStatus.NOT_FOUND);
+      });
 
-            const hotel = await createHotel();
-            const room = await createRoomWithHotelId(hotel.id);
+      it('should respond with status 200 and booking id', async () => {
+          const user = await createUser();
+          const token = await generateValidToken(user);
+          const enrollment = await createEnrollmentWithAddress(user);
+          const ticketType = await createTicketType(false, true);
+          const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);    
             
-            const response = await server.post('/booking').set('Authorization', `Bearer ${token}`).send({roomId: room.id});
+          await createPayment(ticket.id, ticketType.price);
+
+          const hotel = await createHotel();
+          const room = await createRoomWithHotelId(hotel.id);
+            
+          const response = await server.post('/booking').set('Authorization', `Bearer ${token}`).send({roomId: room.id});
       
-            expect(response.status).toBe(httpStatus.OK);
-          });
+          expect(response.status).toBe(httpStatus.OK);
+      });
  
     });
   });
