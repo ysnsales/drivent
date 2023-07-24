@@ -7,7 +7,7 @@ import ticketsRepository from "../../repositories/tickets-repository";
 
 async function getBooking( userId:number ){
     const booking = await bookingRepository.getBooking(userId);
-    if (!booking) throw notFoundError();
+    if (!booking) throw forbiddenError();
 
     return booking;
 };

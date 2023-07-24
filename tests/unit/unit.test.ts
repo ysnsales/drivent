@@ -5,7 +5,14 @@ import { createEnrollmentInput, createTicketInput } from "../factories";
 import { TicketStatus } from "@prisma/client";
 import ticketsRepository from "@/repositories/tickets-repository";
 import enrollmentRepository from "@/repositories/enrollment-repository";
-import bookingService from '../services/booking-service';
+import bookingService from '@/services/booking-service';
+import { init } from '@/app';
+import { cleanDb } from '../helpers';
+
+beforeAll(async () => {
+    await init();
+    await cleanDb();
+  });
 
 beforeEach(async () => {
     jest.clearAllMocks();
@@ -18,8 +25,8 @@ describe("get booking", () => {
         
         const promise = bookingService.getBooking(booking.userId);
         expect(promise).rejects.toEqual({
-            name: 'NotFoundError',
-            message: 'No result for this search!',
+            name: 'ForbiddenError',
+            message: 'You do not have permission to do this action',
         })
     });
     
@@ -27,7 +34,7 @@ describe("get booking", () => {
 
 describe("create booking", () => {
     it('should return not found error if user does not have an enrollment', async () => {
-        jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(null);
+        jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(undefined);
 
         const promise = bookingService.createBooking(1, 1);
         expect(promise).rejects.toEqual({
@@ -40,7 +47,7 @@ describe("create booking", () => {
         const enrollment = createEnrollmentInput();
         jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockResolvedValue(enrollment);
         const ticket = createTicketInput(true, false, TicketStatus.RESERVED);
-        jest.spyOn(ticketsRepository, 'findTicketsByUserId').mockResolvedValue(null);
+        jest.spyOn(ticketsRepository, 'findTicketsByUserId').mockResolvedValue(undefined);
     
         const promise = bookingService.createBooking(1,1);
         expect(promise).rejects.toEqual({

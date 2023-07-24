@@ -43,12 +43,12 @@ describe('GET /booking', () => {
     });
   
     describe('when token is valid', () => {
-        it('should respond with status 404 when user does not have a booking', async () => {
+        it('should respond with status 403 when user does not have a booking', async () => {
             const token = await generateValidToken();
       
             const response = await server.get('/booking').set('Authorization', `Bearer ${token}`);
       
-            expect(response.status).toEqual(httpStatus.NOT_FOUND);
+            expect(response.status).toEqual(httpStatus.FORBIDDEN);
           });
 
         it('should respond with user booking', async () => {
@@ -68,8 +68,6 @@ describe('GET /booking', () => {
       
             expect(response.status).toBe(httpStatus.OK);
           });
- 
-
     });
   });
 
@@ -190,7 +188,7 @@ describe('POST /booking', () => {
 
 describe('PUT /booking/:bookingId', () => {
     it('should respond with status 401 if no token is given', async () => {
-        const response = await server.put('/booking/1');
+        const response = await server.put('/booking');
     
         expect(response.status).toBe(httpStatus.UNAUTHORIZED);
       });
@@ -198,7 +196,7 @@ describe('PUT /booking/:bookingId', () => {
       it('should respond with status 401 if given token is not valid', async () => {
         const token = faker.lorem.word();
     
-        const response = await server.put('/booking/1').set('Authorization', `Bearer ${token}`);
+        const response = await server.put('/booking').set('Authorization', `Bearer ${token}`);
     
         expect(response.status).toBe(httpStatus.UNAUTHORIZED);
       });
@@ -207,7 +205,7 @@ describe('PUT /booking/:bookingId', () => {
         const userWithoutSession = await createUser();
         const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
     
-        const response = await server.put('/booking/1').set('Authorization', `Bearer ${token}`);
+        const response = await server.put('/booking').set('Authorization', `Bearer ${token}`);
     
         expect(response.status).toBe(httpStatus.UNAUTHORIZED);
       });

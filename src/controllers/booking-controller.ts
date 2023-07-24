@@ -17,7 +17,6 @@ async function getBooking (req: AuthenticatedRequest, res: Response) {
       if (error.name === 'ForbiddenError') {
         return res.sendStatus(403);
       }
-      return res.status(403).send('Cannot get booking');
     }
   };
 
@@ -32,9 +31,8 @@ async function createBooking (req: AuthenticatedRequest, res: Response) {
         return res.sendStatus(404);
     }
       if (error.name === 'ForbiddenError') {
-        return res.sendStatus(403)
+        return res.sendStatus(403);
       }
-      return res.sendStatus(403);
     }
   };
 
@@ -54,7 +52,6 @@ async function updateBooking(req: AuthenticatedRequest, res: Response) {
       if (error.name === 'ForbiddenError') {
         return res.sendStatus(403);
       }
-      return res.sendStatus(403);
     }
   };
 
